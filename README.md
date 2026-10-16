@@ -46,7 +46,7 @@ http://localhost:3000
 ## 📁 프로젝트 구조
 
 ```
-memo-app/
+super-memo-app/
 ├── src/
 │   ├── app/
 │   │   ├── globals.css          # 글로벌 스타일
