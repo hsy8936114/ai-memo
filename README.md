@@ -2,7 +2,7 @@
 
 **핸즈온 실습용 Next.js 메모 애플리케이션**
 
-LocalStorage 기반의 완전한 CRUD 기능을 갖춘 메모 앱으로, MCP 연동 및 GitHub PR 생성 실습의 기반이 되는 프로젝트입니다.
+LocalStorage 기반의 완전한 CRUD 기능을 갖춘 슈퍼 메모앱으로, MCP 연동 및 GitHub PR 생성 실습의 기반이 되는 프로젝트입니다.
 
 ## 🚀 주요 기능
 
