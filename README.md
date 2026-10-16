@@ -17,7 +17,7 @@ Supabase(Postgres)에 데이터를 저장하는 완전한 CRUD 기능을 갖춘 
 
 ## 🛠 기술 스택
 
-- **Framework**: Next.js 15.4.4 (App Router)
+- **Framework**: Next.js 16.2.9 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **Storage**: Supabase (`@supabase/supabase-js`) + Next.js Server Actions
@@ -193,12 +193,11 @@ npm run build
 npx vercel --prod
 ```
 
+배포 환경에도 `.env.local`과 같은 환경변수(`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `ANTHROPIC_API_KEY`)를 등록해야 합니다. 이 앱은 서버 액션을 사용하므로 정적 파일만 올리는 방식(`dist` 폴더 업로드 등)으로는 배포할 수 없고, Node.js 서버 실행을 지원하는 환경이 필요합니다.
+
 ### Netlify 배포
 
-```bash
-npm run build
-# dist 폴더를 Netlify에 드래그 앤 드롭
-```
+Netlify에서도 Git 저장소를 연결해 Next.js 빌드(`npm run build`)로 배포할 수 있으며, 위와 같은 환경변수를 사이트 설정에 등록합니다.
 
 ## 📄 라이선스
 
