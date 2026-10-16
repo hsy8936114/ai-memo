@@ -1,0 +1,61 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/id_rsa*)",
+      "Read(**/id_ed25519*)",
+      "Read(**/*secret*)",
+      "Read(**/*credential*)",
+      "Read(**/.npmrc)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Bash(cat *.env*)",
+      "Bash(cat *.pem)",
+      "Bash(cat *.key)",
+      "Bash(cat *id_rsa*)",
+      "Bash(cat *id_ed25519*)",
+      "Bash(cat *secret*)",
+      "Bash(cat *credential*)",
+      "Bash(cat *.npmrc)",
+      "Bash(type *.env*)",
+      "Bash(type *.pem)",
+      "Bash(type *.key)",
+      "Bash(head *.env*)",
+      "Bash(tail *.env*)",
+      "Bash(less *.env*)",
+      "Bash(more *.env*)",
+      "Bash(grep * *.env*)",
+      "Bash(Get-Content *.env*)",
+      "Bash(Get-Content *.pem)",
+      "Bash(Get-Content *.key)",
+      "Bash(gc *.env*)",
+      "Bash(printenv*)",
+      "Bash(env)",
+      "Bash(set)"
+    ]
+  },
+  "sandbox": {
+    "filesystem": {
+      "denyRead": [
+        "./.env",
+        "./.env.*",
+        "**/*.pem",
+        "**/*.key",
+        "**/*.p12",
+        "**/*.pfx",
+        "**/id_rsa*",
+        "**/id_ed25519*",
+        "**/.npmrc",
+        "~/.ssh",
+        "~/.aws"
+      ]
+    }
+  }
+}
