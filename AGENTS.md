@@ -1,4 +1,4 @@
-# Memo App - AI Agent 지침서
+# 슈퍼 메모앱 - AI Agent 지침서
 
 ## 프로젝트 개요
 
