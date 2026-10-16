@@ -2,7 +2,7 @@
 
 **핸즈온 실습용 Next.js 메모 애플리케이션**
 
-LocalStorage 기반의 완전한 CRUD 기능을 갖춘 슈퍼 메모앱으로, MCP 연동 및 GitHub PR 생성 실습의 기반이 되는 프로젝트입니다.
+Supabase(Postgres)에 데이터를 저장하는 완전한 CRUD 기능을 갖춘 슈퍼 메모앱으로, MCP 연동 및 GitHub PR 생성 실습의 기반이 되는 프로젝트입니다.
 
 ## 🚀 주요 기능
 
@@ -11,7 +11,8 @@ LocalStorage 기반의 완전한 CRUD 기능을 갖춘 슈퍼 메모앱으로, M
 - 🏷️ 태그 시스템으로 메모 태깅
 - 🔍 제목, 내용, 태그 기반 실시간 검색
 - 📱 반응형 디자인 (모바일, 태블릿, 데스크톱)
-- 💾 LocalStorage 기반 데이터 저장 (오프라인 지원)
+- 💾 Supabase(Postgres) 기반 데이터 저장 (Next.js Server Actions 경유)
+- 🤖 Anthropic Claude를 이용한 메모 AI 요약
 - 🎨 모던한 UI/UX with Tailwind CSS
 
 ## 🛠 기술 스택
@@ -19,7 +20,8 @@ LocalStorage 기반의 완전한 CRUD 기능을 갖춘 슈퍼 메모앱으로, M
 - **Framework**: Next.js 15.4.4 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
-- **Storage**: LocalStorage
+- **Storage**: Supabase (`@supabase/supabase-js`) + Next.js Server Actions
+- **AI 요약**: Anthropic Claude (`@anthropic-ai/sdk`, 서버 액션에서만 호출)
 - **State Management**: React Hooks (useState, useEffect, useMemo)
 - **Package Manager**: npm
 
@@ -31,13 +33,23 @@ LocalStorage 기반의 완전한 CRUD 기능을 갖춘 슈퍼 메모앱으로, M
 npm install
 ```
 
-### 2. 개발 서버 실행
+### 2. 환경변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 만들고 아래 값을 채웁니다. (`.env*`는 git에 올라가지 않습니다.)
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=<Supabase 프로젝트 URL>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<Supabase publishable key>
+ANTHROPIC_API_KEY=<Anthropic API 키>  # 선택: 없으면 AI 요약이 생성되지 않습니다
+```
+
+### 3. 개발 서버 실행
 
 ```bash
 npm run dev
 ```
 
-### 3. 브라우저 접속
+### 4. 브라우저 접속
 
 ```
 http://localhost:3000
@@ -49,20 +61,26 @@ http://localhost:3000
 super-memo-app/
 ├── src/
 │   ├── app/
+│   │   ├── actions/
+│   │   │   └── memoActions.ts   # Supabase CRUD 서버 액션
 │   │   ├── globals.css          # 글로벌 스타일
 │   │   ├── layout.tsx           # 루트 레이아웃
 │   │   └── page.tsx             # 메인 페이지
 │   ├── components/
 │   │   ├── MemoForm.tsx         # 메모 생성/편집 폼
 │   │   ├── MemoItem.tsx         # 개별 메모 카드
-│   │   └── MemoList.tsx         # 메모 목록 및 필터
+│   │   ├── MemoList.tsx         # 메모 목록 및 필터
+│   │   └── MemoViewer.tsx       # 메모 상세 보기
 │   ├── hooks/
 │   │   └── useMemos.ts          # 메모 관리 커스텀 훅
 │   ├── types/
 │   │   └── memo.ts              # 메모 타입 정의
 │   └── utils/
-│       ├── localStorage.ts      # LocalStorage 유틸리티
-│       └── seedData.ts          # 샘플 데이터 시딩
+│       ├── memoDisplay.ts       # 메모 표시용 헬퍼
+│       ├── memoMapper.ts        # DB 행 ↔ Memo 변환
+│       ├── summarize.ts         # Claude AI 요약
+│       └── supabase/
+│           └── server.ts        # 서버용 Supabase 클라이언트
 └── README.md                    # 프로젝트 문서
 ```
 
@@ -98,6 +116,7 @@ interface Memo {
   content: string // 메모 내용
   category: string // 카테고리 (personal, work, study, idea, other)
   tags: string[] // 태그 배열
+  summary?: string | null // AI 요약 (선택)
   createdAt: string // 생성 날짜 (ISO string)
   updatedAt: string // 수정 날짜 (ISO string)
 }
@@ -127,17 +146,6 @@ interface Memo {
 
 자세한 실습 가이드는 강의자료를 참고하세요.
 
-## 🎨 샘플 데이터
-
-앱 첫 실행 시 6개의 샘플 메모가 자동으로 생성됩니다:
-
-- 프로젝트 회의 준비 (업무)
-- React 18 새로운 기능 학습 (학습)
-- 새로운 앱 아이디어: 습관 트래커 (아이디어)
-- 주말 여행 계획 (개인)
-- 독서 목록 (개인)
-- 성능 최적화 아이디어 (아이디어)
-
 ## 🔧 개발 가이드
 
 ### 메모 CRUD 작업
@@ -147,6 +155,7 @@ interface Memo {
 const {
   memos, // 필터링된 메모 목록
   loading, // 로딩 상태
+  error, // 에러 메시지
   createMemo, // 메모 생성
   updateMemo, // 메모 수정
   deleteMemo, // 메모 삭제
@@ -156,19 +165,23 @@ const {
 } = useMemos()
 ```
 
-### LocalStorage 직접 조작
+### Supabase 서버 액션
+
+DB 접근은 클라이언트에서 직접 하지 않고 `src/app/actions/memoActions.ts`의 서버 액션(`'use server'`)으로만 수행합니다. `useMemos` 훅이 이 액션을 호출합니다.
 
 ```typescript
-import { localStorageUtils } from '@/utils/localStorage'
+import {
+  getMemos,
+  createMemo,
+  updateMemo,
+  deleteMemo,
+} from '@/app/actions/memoActions'
 
-// 모든 메모 가져오기
-const memos = localStorageUtils.getMemos()
+// 모든 메모 가져오기 (최신순)
+const memos = await getMemos()
 
-// 메모 추가
-localStorageUtils.addMemo(newMemo)
-
-// 메모 검색
-const results = localStorageUtils.searchMemos('React')
+// 메모 생성 (AI 요약 자동 생성)
+const memo = await createMemo({ title, content, category, tags })
 ```
 
 ## 🚀 배포
